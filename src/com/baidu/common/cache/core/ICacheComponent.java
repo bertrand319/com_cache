@@ -1,8 +1,11 @@
 package com.baidu.common.cache.core;
 
+import java.io.InputStream;
+import java.io.OutputStream;
+
 import com.baidu.common.ComInterface;
 import com.baidu.common.cache.core.CacheComponentImpl.DeletePolicy;
-import com.baidu.common.cache.core.CacheComponentImpl.ICacheCallBack;
+import com.baidu.common.cache.core.ICacheCallBack;
 
 /**
  *
@@ -19,13 +22,21 @@ public interface ICacheComponent extends ComInterface {
 	
 	public boolean clearCache();
 	
-	public void putString(final String path, final String key, final String value);
+	public void putString( String path,  String key,  String value);
 	
-	public void getString(final String path, final String key);
+	public void getString( String path,  String key);
 	
-	public boolean putStringSync(final String path, final String key, final String value);
+	public boolean putStringSync( String path, String key,  String value);
 	
-	public String getStringSync(final String path, final String key);
+	public String getStringSync(String path, String key);
+	
+	public void put(String path, String key, InputStream value);
+	
+	public void get(String path, String key);
+	
+	public boolean putSync(String path, String key, InputStream value);
+	
+	public InputStream getSync(String path, String key);
 	
 	public void setCallBackListner(ICacheCallBack cacheCallBack);
 	

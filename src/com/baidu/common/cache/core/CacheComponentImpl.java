@@ -1,11 +1,17 @@
 package com.baidu.common.cache.core;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.io.StringBufferInputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -32,15 +38,18 @@ import com.baidu.common.cache.utils.FileUtils;
  */
 public class CacheComponentImpl implements ICacheComponent {
 
-	public static final int MSG_SUCCES = 0;
-	public static final int MSG_FAIL = 1;
+	public static final int MSG_PUT_SUCCESS = 0;
+	public static final int MSG_PUT_FAIL = 1;
+	public static final int MSG_GET_SUCCESS = 2;
+	public static final int MSG_GET_FAIL = 3;
 
 	private Object mSync = new Object();
 	private static volatile int sRef;
 	private CacheComponentImpl mInstanse;
 	private Map<String, BaseDiscCache> mCaches = Collections
 			.synchronizedMap(new HashMap<String, BaseDiscCache>());
-	private ExecutorService mExecutor;
+	private ExecutorService mPutExecutor;
+	private ExecutorService mGetExecutor;
 	private ICacheCallBack mICacheCallBack;
 
 	public enum DeletePolicy {
@@ -74,8 +83,7 @@ public class CacheComponentImpl implements ICacheComponent {
 	}
 
 	private void setupThreadPool() {
-		mExecutor = Executors
-				.newSingleThreadExecutor(new ThreadFactory() {
+		mPutExecutor = Executors.newSingleThreadExecutor(new ThreadFactory() {
 					@Override
 					public Thread newThread(Runnable r) {
 						Thread t = new Thread(r);
@@ -83,6 +91,16 @@ public class CacheComponentImpl implements ICacheComponent {
 						return t;
 					}
 				});
+		mGetExecutor = Executors.newFixedThreadPool(10, new ThreadFactory() {
+			
+			@Override
+			public Thread newThread(Runnable r) {
+				// TODO Auto-generated method stub
+				Thread t = new Thread(r);
+				t.setPriority(Thread.NORM_PRIORITY);
+				return t;
+			}
+		});
 	}
 
 	@Override
@@ -149,7 +167,7 @@ public class CacheComponentImpl implements ICacheComponent {
 	@Override
 	public boolean clearCache() {
 		// TODO Auto-generated method stub
-		mExecutor.submit(new Runnable() {
+		mPutExecutor.submit(new Runnable() {
 			
 			@Override
 			public void run() {
@@ -169,32 +187,36 @@ public class CacheComponentImpl implements ICacheComponent {
 	@Override
 	public void setCallBackListner(ICacheCallBack cacheCallBack) {
 		// TODO Auto-generated method stub
-
+		mICacheCallBack = cacheCallBack;
 	}
 
 	@Override
 	public void putString(final String path, final String key,
 			final String value) {
 		// TODO Auto-generated method stub
-		mExecutor.submit(new Runnable() {
+		mPutExecutor.submit(new Runnable() {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
-				PrintWriter out = null;
+				ByteArrayInputStream bis = null;
 				try {
-					BaseDiscCache baseDiscCache = mCaches.get(path);
-					File targetFile = baseDiscCache.get(key);
-					out = new PrintWriter(new FileOutputStream(targetFile));
-					out.println(value);
-					out.flush();
-					baseDiscCache.put(key, targetFile);
-					makeCallBack(MSG_SUCCES, null);
+					bis = new ByteArrayInputStream(value.getBytes());
+					if(putSync(path, key, bis)) 
+					{
+						mICacheCallBack.onCallBack(MSG_PUT_SUCCESS, null);
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
-					makeCallBack(MSG_FAIL, e);
+					mICacheCallBack.onCallBack(MSG_PUT_FAIL, e);
 				} finally {
-					if (out != null) {
-						out.close();
+					if(bis != null)
+					{
+						try {
+							bis.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
 					}
 				}
 
@@ -205,31 +227,36 @@ public class CacheComponentImpl implements ICacheComponent {
 	@Override
 	public void getString(final String path, final String key) {
 		// TODO Auto-generated method stub
-		mExecutor.submit(new Runnable() {
+		mGetExecutor.submit(new Runnable() {
 			@Override
 			public void run() {
 				// TODO Auto-generated method stub
 				String value = "";
-				BufferedReader br = null;
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				ByteArrayInputStream in = null;
 				// 创建新的BufferedReader对象
 				try {
-					BaseDiscCache baseDiscCache = mCaches.get(path);
-					File targetFile = baseDiscCache.get(key);
-					br = new BufferedReader(new FileReader(targetFile));
-					String tempString = null;
-					// readLine()读取每行数据，如果没有值则为null(read读取每一个字符转换为char类型)
-					while ((tempString = br.readLine()) != null) {
-						value += tempString;
-					}
-					mICacheCallBack.onCallBack(MSG_SUCCES, value);
+					in = FileUtils.fileInputStreamToByteArrayInputStream(
+							(FileInputStream)getSync(path, key));
+					FileUtils.copyStream(in, out);
+					value = new String(out.toByteArray());
+					mICacheCallBack.onCallBack(MSG_GET_SUCCESS, value);
 				} catch (Exception e) {
 					e.printStackTrace();
-					mICacheCallBack.onCallBack(MSG_FAIL, null);
+					mICacheCallBack.onCallBack(MSG_GET_FAIL, null);
 				} finally {
-					if (br != null) {
+					if (in != null) {
 						try {
-							br.close();
+							in.close();
 						} catch (IOException e) {
+							e.printStackTrace();
+						}
+					}
+					if(out != null) {
+						try {
+							out.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
 							e.printStackTrace();
 						}
 					}
@@ -244,20 +271,24 @@ public class CacheComponentImpl implements ICacheComponent {
 	public boolean putStringSync(String path, String key, String value) {
 		// TODO Auto-generated method stub
 		boolean flag = false;
-		PrintWriter out = null;
+		ByteArrayInputStream bis = null;
 		try {
-			BaseDiscCache baseDiscCache = mCaches.get(path);
-			File targetFile = baseDiscCache.get(key);
-			baseDiscCache.put(key, targetFile);
-			out = new PrintWriter(new FileOutputStream(targetFile));
-			out.println(value);
-			baseDiscCache.put(key, targetFile);
-			flag = true;
+			bis = new ByteArrayInputStream(value.getBytes());
+			if(putSync(path, key, bis)) 
+			{
+				flag = true;
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if (out != null) {
-				out.close();
+			if(bis != null)
+			{
+				try {
+					bis.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 		return flag;
@@ -267,24 +298,29 @@ public class CacheComponentImpl implements ICacheComponent {
 	public String getStringSync(String path, String key) {
 		// TODO Auto-generated method stub
 		String value = "";
-		BufferedReader br = null;
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		ByteArrayInputStream in = null;
 		// 创建新的BufferedReader对象
 		try {
-			BaseDiscCache baseDiscCache = mCaches.get(path);
-			File targetFile = baseDiscCache.get(key);
-			br = new BufferedReader(new FileReader(targetFile));
-			String tempString = null;
-			// readLine()读取每行数据，如果没有值则为null(read读取每一个字符转换为char类型)
-			while ((tempString = br.readLine()) != null) {
-				value += tempString;
-			}
+			in = FileUtils.fileInputStreamToByteArrayInputStream(
+					(FileInputStream)getSync(path, key));
+			FileUtils.copyStream(in, out);
+			value = new String(out.toByteArray());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			if (br != null) {
+			if (in != null) {
 				try {
-					br.close();
+					in.close();
 				} catch (IOException e) {
+					e.printStackTrace();
+				}
+			}
+			if(out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -298,9 +334,123 @@ public class CacheComponentImpl implements ICacheComponent {
 		}
 	}
 
-	public interface ICacheCallBack {
-		public void onCallBack(int errorNo, Object obj);
+	@Override
+	public void put(final String path, final String key, final InputStream value) {
+		// TODO Auto-generated method stub
+		mPutExecutor.submit(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				FileOutputStream out = null;
+				try {
+					BaseDiscCache baseDiscCache = mCaches.get(path);
+					File targetFile = baseDiscCache.get(key);
+					out = new FileOutputStream(targetFile);
+					FileUtils.copyStream(value, out);
+					out.flush();
+					baseDiscCache.put(key, targetFile);
+					makeCallBack(MSG_PUT_SUCCESS, null);
+				} catch (Exception e) {
+					e.printStackTrace();
+					makeCallBack(MSG_PUT_FAIL, e);
+				} finally {
+					if (out != null) {
+						try {
+							out.close();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+				}
+			}
+		});
 	}
 
+	@Override
+	public void get(final String path, final String key) {
+		// TODO Auto-generated method stub
+		mGetExecutor.submit(new Runnable() {
+			
+			@Override
+			public void run() {
+				// TODO Auto-generated method stub
+				FileInputStream fis = null;
+				// 创建新的BufferedReader对象
+				try {
+					BaseDiscCache baseDiscCache = mCaches.get(path);
+					File targetFile = baseDiscCache.get(key);
+					fis = new FileInputStream(targetFile);
+					mICacheCallBack.onCallBack(MSG_GET_SUCCESS, fis);
+				} catch (Exception e) {
+					e.printStackTrace();
+					mICacheCallBack.onCallBack(MSG_GET_FAIL, null);
+					if(fis != null)
+					{
+						try {
+							fis.close();
+						} catch (IOException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+					}
+				} 
+			}
+		});
+	}
+
+	@Override
+	public boolean putSync(final String path, final String key, final InputStream value) {
+		// TODO Auto-generated method stub
+		boolean flag = false;
+		FileOutputStream out = null;
+		try {
+			BaseDiscCache baseDiscCache = mCaches.get(path);
+			File targetFile = baseDiscCache.get(key);
+			out = new FileOutputStream(targetFile);
+			FileUtils.copyStream(value, out);
+			out.flush();
+			baseDiscCache.put(key, targetFile);
+			flag = true;
+		} catch (Exception e) {
+			e.printStackTrace();
+			flag = false;
+		} finally {
+			if (out != null) {
+				try {
+					out.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+			}
+		}
+		return flag;
+	}
+
+	@Override
+	public InputStream getSync(String path, String key) {
+		// TODO Auto-generated method stub
+		FileInputStream fis = null;
+		// 创建新的BufferedReader对象
+		try {
+			BaseDiscCache baseDiscCache = mCaches.get(path);
+			File targetFile = baseDiscCache.get(key);
+			fis = new FileInputStream(targetFile);
+		} catch (Exception e) {
+			e.printStackTrace();
+			if(fis != null)
+			{
+				try {
+					fis.close();
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+			}
+		} 
+		return fis;
+	}
 
 }

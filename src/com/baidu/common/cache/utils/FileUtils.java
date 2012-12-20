@@ -1,7 +1,9 @@
 
 package com.baidu.common.cache.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -28,6 +30,16 @@ public final class FileUtils {
             }
             os.write(bytes, 0, count);
         }
+    }
+    
+    public static ByteArrayInputStream fileInputStreamToByteArrayInputStream(FileInputStream fis) throws IOException
+    {
+    	ByteArrayInputStream bis = null;
+		byte [] buffer = new byte[fis.available()];
+		fis.read(buffer);
+		fis.close();
+		bis = new ByteArrayInputStream(buffer);
+    	return bis;
     }
     
     /**

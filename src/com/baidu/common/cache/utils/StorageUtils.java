@@ -6,7 +6,6 @@ import java.io.IOException;
 
 import android.content.Context;
 import android.os.Environment;
-import android.util.Log;
 
 /**
  * Provides application storage paths

@@ -9,25 +9,31 @@ import java.util.List;
 
 import android.graphics.Bitmap;
 
-import com.baidu.common.cache.memory.LimitedMemoryCache;
+import com.baidu.common.cache.memory2.LimitedMemoryCache;
 
 /**
- * Limited {@link Bitmap bitmap} cache. Provides {@link Bitmap bitmaps} storing.
- * Size of all stored bitmaps will not to exceed size limit. When cache reaches
+ * Limited {@link Object Object} cache. Provides {@link Object Objects} storing.
+ * Size of all stored Objects will not to exceed size limit. When cache reaches
  * limit size then cache clearing is processed by FIFO principle.
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
+ * @modify huangweigan 
  */
-public class FIFOLimitedMemoryCache extends LimitedMemoryCache<String, Bitmap> {
+public class FIFOLimitedMemoryCache extends LimitedMemoryCache<String, Object> {
+	
+	/* 
+	 * 1 Mb
+	 */
+	public static final int DEFAULT_SIZE_LIMIT = 1024 * 1024;
 
-    private final List<Bitmap> queue = Collections.synchronizedList(new LinkedList<Bitmap>());
+    private final List<Object> queue = Collections.synchronizedList(new LinkedList<Object>());
 
     public FIFOLimitedMemoryCache(int sizeLimit) {
         super(sizeLimit);
     }
 
     @Override
-    public boolean put(String key, Bitmap value) {
+    public boolean put(String key, Object value) {
         if (super.put(key, value)) {
             queue.add(value);
             return true;
@@ -38,7 +44,7 @@ public class FIFOLimitedMemoryCache extends LimitedMemoryCache<String, Bitmap> {
 
     @Override
     public void remove(String key) {
-        Bitmap value = super.get(key);
+        Object value = super.get(key);
         if (value != null) {
             queue.remove(value);
         }
@@ -52,17 +58,22 @@ public class FIFOLimitedMemoryCache extends LimitedMemoryCache<String, Bitmap> {
     }
 
     @Override
-    protected int getSize(Bitmap value) {
-        return value.getRowBytes() * value.getHeight();
+    protected int getSize(Object value) {
+    	if(value instanceof Bitmap)
+    	{
+    		Bitmap bm = (Bitmap)value;
+    		return bm.getRowBytes() * bm.getHeight();
+    	}
+    	return value.toString().length()*2;
     }
 
     @Override
-    protected Bitmap removeNext() {
+    protected Object removeNext() {
         return queue.remove(0);
     }
 
     @Override
-    protected Reference<Bitmap> createReference(Bitmap value) {
-        return new WeakReference<Bitmap>(value);
+    protected Reference<Object> createReference(Object value) {
+        return new WeakReference<Object>(value);
     }
 }

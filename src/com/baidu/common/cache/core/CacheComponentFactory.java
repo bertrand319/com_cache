@@ -1,12 +1,9 @@
 package com.baidu.common.cache.core;
 
-import java.util.Map;
-
 import android.content.Context;
 
 import com.baidu.common.ComFactory;
 import com.baidu.common.ComInterface;
-import com.baidu.common.cache.core.CacheComponentImpl.DeletePolicy;
 
 /**
  *
@@ -16,17 +13,12 @@ import com.baidu.common.cache.core.CacheComponentImpl.DeletePolicy;
  * @author huangweigan
  */
 public class CacheComponentFactory extends ComFactory {
-	
-    public static ComInterface createInterface(Context context)
-    {
-        return createInterface(context, null);
-    }
     
-    public static ComInterface createInterface(Context context, Map<String, DeletePolicy> cachePaths)
+    public static ComInterface createInterface(Context context)
     {
     	if (context != null)
         {
-            CacheComponentImpl instance = new CacheComponentImpl(context, cachePaths);
+            CacheComponentImpl instance = new CacheComponentImpl(context);
             return instance.getInstance();
         }
         else

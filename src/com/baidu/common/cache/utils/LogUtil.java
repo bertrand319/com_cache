@@ -8,7 +8,7 @@ import android.util.Log;
  * 
  * @author yuankai
  * @version 1.0
- * @date 2012-11-18, modified by huangweigan
+ * @modified huangweigan
  */
 public class LogUtil
 {

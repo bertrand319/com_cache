@@ -3,7 +3,6 @@ package com.baidu.common.activity;
 import android.app.Activity;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Looper;
 import android.os.Message;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -14,7 +13,8 @@ import android.widget.Toast;
 import com.baidu.common.R;
 import com.baidu.common.cache.core.CacheComponentFactory;
 import com.baidu.common.cache.core.CacheComponentImpl;
-import com.baidu.common.cache.core.CacheComponentImpl.DeletePolicy;
+import com.baidu.common.cache.core.CacheComponentImpl.DiskPolicy;
+import com.baidu.common.cache.core.CacheComponentImpl.MemoryPolicy;
 import com.baidu.common.cache.core.ICacheCallBack;
 import com.baidu.common.cache.core.ICacheComponent;
 import com.baidu.common.cache.utils.LogUtil;
@@ -71,12 +71,12 @@ public class CacheManageActivity extends Activity {
 		mCachePath2 = "/data/data/" + getPackageName() + "/cache1";
 		mICacheComponent = (ICacheComponent) CacheComponentFactory.createInterface(this);
 		mICacheComponent.setCallBackListner(mICacheCallBack);
-		if(!mICacheComponent.addCachePath(mCachePath1, DeletePolicy.TOTAL_SIZE, 100))
+		if(!mICacheComponent.addDiskCachePath(mCachePath1, DiskPolicy.TOTAL_SIZE, 100))
 		{
 			LogUtil.e("Cache path don't exist!");
 		}
 		
-		if(!mICacheComponent.addCachePath(mCachePath2, DeletePolicy.FILE_COUNT, 10))
+		if(!mICacheComponent.addMemoryCache(mCachePath2, MemoryPolicy.FIFO, 100))
 		{
 			LogUtil.e("Cache path don't exist!");
 		}
@@ -98,7 +98,8 @@ public class CacheManageActivity extends Activity {
 				
 				String key = "test" + (mNum++);
 				String value = String.valueOf(key.hashCode()) + key;
-				mICacheComponent.putString(mCachePath1, key, value);
+				mICacheComponent.put(mCachePath1, key, value, 
+						mICacheComponent.getStringTypeConvertInterface());
 				mLastPath = mCachePath1;
 				mLastKey = key;
 			}
@@ -120,7 +121,8 @@ public class CacheManageActivity extends Activity {
 				// TODO Auto-generated method stub
 				String key = "test" + (mNum++);
 				String value = String.valueOf(key.hashCode()) + key;
-				mICacheComponent.putString(mCachePath2, key, value);
+				mICacheComponent.put(mCachePath2, key, value,
+						mICacheComponent.getStringTypeConvertInterface());
 				mLastPath = mCachePath2;
 				mLastKey = key;
 			}
@@ -131,7 +133,8 @@ public class CacheManageActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				// TODO Auto-generated method stub
-				mICacheComponent.getString(mLastPath, mLastKey);
+				mICacheComponent.get(mLastPath, mLastKey, 
+						mICacheComponent.getStringTypeConvertInterface());
 			}
 		});
 	}

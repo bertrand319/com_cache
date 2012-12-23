@@ -4,9 +4,7 @@ package com.baidu.common.cache.memory.impl;
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 
-import android.graphics.Bitmap;
-
-import com.baidu.common.cache.memory.BaseMemoryCache;
+import com.baidu.common.cache.memory2.BaseMemoryCache;
 
 /**
  * Memory cache with {@linkplain WeakReference weak references} to
@@ -14,9 +12,9 @@ import com.baidu.common.cache.memory.BaseMemoryCache;
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  */
-public class WeakMemoryCache extends BaseMemoryCache<String, Bitmap> {
+public class WeakMemoryCache extends BaseMemoryCache<String, Object> {
     @Override
-    protected Reference<Bitmap> createReference(Bitmap value) {
-        return new WeakReference<Bitmap>(value);
+    protected Reference<Object> createReference(Object value) {
+        return new WeakReference<Object>(value);
     }
 }

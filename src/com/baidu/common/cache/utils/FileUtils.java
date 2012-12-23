@@ -2,17 +2,21 @@
 package com.baidu.common.cache.utils;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
+import android.graphics.Bitmap;
+
 /**
  * Provides operations with files
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
- * @modify huangweigan Add delete dirctory function
+ * @modify huangweigan 
+ * 		1. Add delete dirctory function
  */
 public final class FileUtils {
 
@@ -30,6 +34,33 @@ public final class FileUtils {
             }
             os.write(bytes, 0, count);
         }
+    }
+    
+    public static InputStream objectToInputStream(Object obj)
+    {
+    	InputStream is = null;
+    	if(obj instanceof String)
+    	{
+    		is = new ByteArrayInputStream(((String)obj).getBytes());
+    	}
+    	else if(obj instanceof Bitmap)
+		{
+    		try{
+    			ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+    			((Bitmap) obj).compress(Bitmap.CompressFormat.PNG, 100, baos);  
+    	        is = new ByteArrayInputStream(baos.toByteArray()); 
+    	        baos.close();
+    		} catch(Exception e) {
+    			
+    		}
+		}
+    	return is;
+    }
+    
+    public static Object inputStreamToObject(InputStream is, Object aimObj)
+    {
+    	Object obj = null;
+    	return obj;
     }
     
     public static ByteArrayInputStream fileInputStreamToByteArrayInputStream(FileInputStream fis) throws IOException

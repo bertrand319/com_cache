@@ -1,12 +1,12 @@
 
 package com.baidu.common.cache.disc.impl;
 
-import java.io.File;
-
 import com.baidu.common.cache.disc.BaseDiscCache;
 import com.baidu.common.cache.disc.DiscCacheAware;
 import com.baidu.common.cache.disc.naming.FileNameGenerator;
 import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
+
+import java.io.File;
 
 /**
  * Default implementation of {@linkplain DiscCacheAware disc cache}. Cache size

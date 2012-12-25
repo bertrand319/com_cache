@@ -1,11 +1,11 @@
 
 package com.baidu.common.cache.utils;
 
-import java.io.File;
-import java.io.IOException;
-
 import android.content.Context;
 import android.os.Environment;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Provides application storage paths

@@ -1,15 +1,15 @@
 
 package com.baidu.common.cache.disc;
 
+import com.baidu.common.cache.disc.naming.FileNameGenerator;
+import com.baidu.common.cache.disc.naming.HashCodeFileNameGenerator;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
-
-import com.baidu.common.cache.disc.naming.FileNameGenerator;
-import com.baidu.common.cache.disc.naming.HashCodeFileNameGenerator;
 
 /**
  * Abstract disc cache limited by some parameter. If cache exceeds specified
@@ -18,8 +18,8 @@ import com.baidu.common.cache.disc.naming.HashCodeFileNameGenerator;
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see BaseDiscCache
  * @see FileNameGenerator
- * @modify huangweigan 
- * 		1. Modify get function, make sure file exists before to insert into lastUsageDates
+ * @modify huangweigan 1. Modify get function, make sure file exists before to
+ *         insert into lastUsageDates
  */
 public abstract class LimitedDiscCache extends BaseDiscCache {
 
@@ -81,15 +81,14 @@ public abstract class LimitedDiscCache extends BaseDiscCache {
         lastUsageDates.put(file, currentTime);
     }
 
-
     @Override
     public File get(String key) {
         File file = super.get(key);
         Long currentTime = System.currentTimeMillis();
         file.setLastModified(currentTime);
-        if(file.exists()) 
+        if (file.exists())
         {
-        	lastUsageDates.put(file, currentTime);
+            lastUsageDates.put(file, currentTime);
         }
         return file;
     }

@@ -1,6 +1,9 @@
 
 package com.baidu.common.cache.memory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -11,6 +14,8 @@ import java.util.List;
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see BaseMemoryCache
+ * @modify huangweigan
+ *      1. Add get Object Size function
  */
 public abstract class LimitedMemoryCache<K, V> extends BaseMemoryCache<K, V> {
 
@@ -76,6 +81,40 @@ public abstract class LimitedMemoryCache<K, V> extends BaseMemoryCache<K, V> {
 
     protected int getSizeLimit() {
         return sizeLimit;
+    }
+    
+    /**
+     * @param obj
+     * @return
+     */
+    public int getObjectSize(Object obj)
+    {
+        int size = 0;
+        ObjectOutputStream oos = null;
+        ByteArrayOutputStream bos = null;
+        try {
+            bos = new ByteArrayOutputStream();
+            oos = new ObjectOutputStream(bos);
+            oos.writeObject(obj);
+            oos.flush();
+            size = bos.size();
+        } catch (IOException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+            try {
+                if(oos != null) oos.close();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+            try {
+                if(bos != null) bos.close();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        }
+        return size;
     }
 
     protected abstract int getSize(V value);

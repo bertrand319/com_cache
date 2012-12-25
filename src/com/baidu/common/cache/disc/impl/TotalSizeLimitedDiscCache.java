@@ -1,11 +1,11 @@
 
 package com.baidu.common.cache.disc.impl;
 
-import java.io.File;
-
 import com.baidu.common.cache.disc.LimitedDiscCache;
 import com.baidu.common.cache.disc.naming.FileNameGenerator;
 import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
+
+import java.io.File;
 
 /**
  * Disc cache limited by total cache size. If cache size exceeds specified limit
@@ -13,14 +13,15 @@ import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see LimitedDiscCache
- * @modify huangweigan Add default max size value and use md5 file name generator
+ * @modify huangweigan Add default max size value and use md5 file name
+ *         generator
  */
 public class TotalSizeLimitedDiscCache extends LimitedDiscCache {
-	
-	/*
-	 * 1Mb
-	 */
-	public static final int DEFAUL_MAX_SIZE = 1048576;
+
+    /*
+     * 1Mb
+     */
+    public static final int DEFAUL_MAX_SIZE = 1048576;
 
     /**
      * @param cacheDir Directory for file caching. <b>Important:</b> Specify

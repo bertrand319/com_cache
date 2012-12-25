@@ -1,14 +1,14 @@
 
 package com.baidu.common.cache.disc.impl;
 
+import com.baidu.common.cache.disc.BaseDiscCache;
+import com.baidu.common.cache.disc.naming.FileNameGenerator;
+import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
+
 import java.io.File;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-
-import com.baidu.common.cache.disc.BaseDiscCache;
-import com.baidu.common.cache.disc.naming.FileNameGenerator;
-import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
 
 /**
  * Cache which deletes files which were loaded more than defined time. Cache
@@ -16,17 +16,15 @@ import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see BaseDiscCache
- * @modify huangweigan 
- *  	1. Add default max age value 
- *      2. Use md5 file name generator
- *      3. Delete the expired file when setting up loadingData
+ * @modify huangweigan 1. Add default max age value 2. Use md5 file name
+ *         generator 3. Delete the expired file when setting up loadingData
  */
 public class LimitedAgeDiscCache extends BaseDiscCache {
-	
-	/*
-	 * 7 days
-	 */
-	public static final long DEFAULT_MAX_AGE = 604800;
+
+    /*
+     * 7 days
+     */
+    public static final long DEFAULT_MAX_AGE = 604800;
 
     private final long maxFileAge;
 
@@ -59,15 +57,15 @@ public class LimitedAgeDiscCache extends BaseDiscCache {
     private void readLoadingDates() {
         File[] cachedFiles = getCacheDir().listFiles();
         for (File cachedFile : cachedFiles) {
-        	long lastModifedDate = cachedFile.lastModified();
-        	if(System.currentTimeMillis() - lastModifedDate > maxFileAge)
-        	{
-        		cachedFile.delete();
-        	}
-        	else 
-        	{
-        		loadingDates.put(cachedFile, cachedFile.lastModified());
-			}
+            long lastModifedDate = cachedFile.lastModified();
+            if (System.currentTimeMillis() - lastModifedDate > maxFileAge)
+            {
+                cachedFile.delete();
+            }
+            else
+            {
+                loadingDates.put(cachedFile, cachedFile.lastModified());
+            }
         }
     }
 

@@ -1,11 +1,11 @@
 
 package com.baidu.common.cache.disc.impl;
 
-import java.io.File;
-
 import com.baidu.common.cache.disc.LimitedDiscCache;
 import com.baidu.common.cache.disc.naming.FileNameGenerator;
 import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
+
+import java.io.File;
 
 /**
  * Disc cache limited by file count. If file count in cache directory exceeds
@@ -18,8 +18,8 @@ import com.baidu.common.cache.disc.naming.Md5FileNameGenerator;
  * @modify huangweigan Use MD5 File Name Generator
  */
 public class FileCountLimitedDiscCache extends LimitedDiscCache {
-	
-	public final static int DEFAULT_FILE_COUNT_NUM = 100;
+
+    public final static int DEFAULT_FILE_COUNT_NUM = 100;
 
     /**
      * @param cacheDir Directory for file caching. <b>Important:</b> Specify

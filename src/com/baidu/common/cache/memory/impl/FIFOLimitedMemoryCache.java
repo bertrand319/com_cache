@@ -1,15 +1,15 @@
 
 package com.baidu.common.cache.memory.impl;
 
+import android.graphics.Bitmap;
+
+import com.baidu.common.cache.memory.LimitedMemoryCache;
+
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-
-import android.graphics.Bitmap;
-
-import com.baidu.common.cache.memory2.LimitedMemoryCache;
 
 /**
  * Limited {@link Object Object} cache. Provides {@link Object Objects} storing.
@@ -17,14 +17,14 @@ import com.baidu.common.cache.memory2.LimitedMemoryCache;
  * limit size then cache clearing is processed by FIFO principle.
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
- * @modify huangweigan 
+ * @modify huangweigan
  */
 public class FIFOLimitedMemoryCache extends LimitedMemoryCache<String, Object> {
-	
-	/* 
-	 * 1 Mb
-	 */
-	public static final int DEFAULT_SIZE_LIMIT = 1024 * 1024;
+
+    /*
+     * 1 Mb
+     */
+    public static final int DEFAULT_SIZE_LIMIT = 1024 * 1024;
 
     private final List<Object> queue = Collections.synchronizedList(new LinkedList<Object>());
 
@@ -59,12 +59,12 @@ public class FIFOLimitedMemoryCache extends LimitedMemoryCache<String, Object> {
 
     @Override
     protected int getSize(Object value) {
-    	if(value instanceof Bitmap)
-    	{
-    		Bitmap bm = (Bitmap)value;
-    		return bm.getRowBytes() * bm.getHeight();
-    	}
-    	return value.toString().length()*2;
+        if (value instanceof Bitmap)
+        {
+            Bitmap bm = (Bitmap) value;
+            return bm.getRowBytes() * bm.getHeight();
+        }
+        return getObjectSize(value);
     }
 
     @Override

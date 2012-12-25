@@ -1,10 +1,10 @@
 
 package com.baidu.common.cache.disc;
 
-import java.io.File;
-
 import com.baidu.common.cache.disc.naming.FileNameGenerator;
 import com.baidu.common.cache.disc.naming.HashCodeFileNameGenerator;
+
+import java.io.File;
 
 /**
  * Base disc cache. Implements common functionality for disc cache.

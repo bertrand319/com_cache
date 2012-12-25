@@ -1,10 +1,10 @@
 
 package com.baidu.common.cache.memory.impl;
 
+import com.baidu.common.cache.memory.BaseMemoryCache;
+
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
-
-import com.baidu.common.cache.memory2.BaseMemoryCache;
 
 /**
  * Memory cache with {@linkplain WeakReference weak references} to

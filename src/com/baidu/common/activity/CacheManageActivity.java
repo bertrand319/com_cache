@@ -49,7 +49,7 @@ public class CacheManageActivity extends Activity {
                 case CacheComponentImpl.MSG_GET_SUCCESS:
                     Toast.makeText(CacheManageActivity.this, "Get Cache Success!",
                             Toast.LENGTH_SHORT).show();
-                    mMsgText.setText(msg.obj.toString());
+                    mMsgText.setText((String)msg.obj);
                     break;
                 case CacheComponentImpl.MSG_PUT_FAIL:
                     Toast.makeText(CacheManageActivity.this, "Put Cache Fail!", Toast.LENGTH_SHORT)
@@ -64,7 +64,6 @@ public class CacheManageActivity extends Activity {
                     break;
             }
         }
-
     };
 
     @Override
@@ -103,8 +102,7 @@ public class CacheManageActivity extends Activity {
 
                 String key = "test" + (mNum++);
                 String value = String.valueOf(key.hashCode()) + key;
-                mICacheComponent.put(mCachePath1, key, value,
-                        mICacheComponent.getStringTypeConvertInterface());
+                mICacheComponent.put(mCachePath1, key, value);
                 mLastPath = mCachePath1;
                 mLastKey = key;
             }
@@ -126,8 +124,7 @@ public class CacheManageActivity extends Activity {
                 // TODO Auto-generated method stub
                 String key = "test" + (mNum++);
                 String value = String.valueOf(key.hashCode()) + key;
-                mICacheComponent.put(mCachePath2, key, value,
-                        mICacheComponent.getStringTypeConvertInterface());
+                mICacheComponent.put(mCachePath2, key, value);
                 mLastPath = mCachePath2;
                 mLastKey = key;
             }
@@ -138,8 +135,7 @@ public class CacheManageActivity extends Activity {
             @Override
             public void onClick(View v) {
                 // TODO Auto-generated method stub
-                mICacheComponent.get(mLastPath, mLastKey,
-                        mICacheComponent.getStringTypeConvertInterface());
+                mICacheComponent.get(mLastPath, mLastKey);
             }
         });
     }

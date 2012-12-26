@@ -25,18 +25,14 @@ public interface ICacheComponent extends ComInterface {
 
     public boolean clearCache();
 
-    public void put(String path, String key, Object value, ITypeConvert typeConvert);
+    public void put(String path, String key, Object value);
 
-    public void get(String path, String key, ITypeConvert typeConvert);
+    public void get(String path, String key);
 
-    public boolean putSync(String path, String key, Object value, ITypeConvert typeConvert);
+    public boolean putSync(String path, String key, Object value);
 
-    public Object getSync(String path, String key, ITypeConvert typeConvert);
+    public Object getSync(String path, String key);
 
     public void setCallBackListner(ICacheCallBack cacheCallBack);
-
-    public ITypeConvert getStringTypeConvertInterface();
-
-    public ITypeConvert getBitmapTypeConvertInterface();
 
 }

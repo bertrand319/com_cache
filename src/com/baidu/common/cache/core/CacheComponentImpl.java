@@ -18,6 +18,8 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -27,8 +29,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * 缓存组件实现类
- * 
+ * 缂撳瓨缁勪欢瀹炵幇绫� * 
  * @date 2012-12-18
  * @version 1.0
  * @author huangweigan
@@ -240,16 +241,16 @@ public class CacheComponentImpl implements ICacheComponent {
         }
     }
 
-    private boolean putToDisk(final String path, final String key, final InputStream value) {
+    private boolean putToDisk(final String path, final String key, final Object obj) {
         // TODO Auto-generated method stub
         boolean flag = false;
-        FileOutputStream out = null;
+        ObjectOutputStream oos = null;
         try {
             BaseDiscCache baseDiscCache = mDiskCaches.get(path);
             File targetFile = baseDiscCache.get(key);
-            out = new FileOutputStream(targetFile);
-            FileUtils.copyStream(value, out);
-            out.flush();
+            oos = new ObjectOutputStream(new FileOutputStream(targetFile));
+            oos.writeObject(obj);
+            oos.flush();
             baseDiscCache.put(key, targetFile);
             flag = true;
         } catch (Exception e) {
@@ -257,7 +258,7 @@ public class CacheComponentImpl implements ICacheComponent {
             flag = false;
         } finally {
             try {
-                if (out != null) out.close();
+                if (oos != null) oos.close();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -266,23 +267,26 @@ public class CacheComponentImpl implements ICacheComponent {
         return flag;
     }
 
-    private InputStream getFromDisk(String path, String key) {
+    private Object getFromDisk(String path, String key) {
         // TODO Auto-generated method stub
-        FileInputStream fis = null;
+        ObjectInputStream ois = null;
+        Object res = null;
         try {
             BaseDiscCache baseDiscCache = mDiskCaches.get(path);
             File targetFile = baseDiscCache.get(key);
-            fis = new FileInputStream(targetFile);
+            ois = new ObjectInputStream(new FileInputStream(targetFile));
+            res = ois.readObject();
         } catch (Exception e) {
             e.printStackTrace();
+        } finally {
             try {
-                if (fis != null) fis.close();
+                if (ois != null) ois.close();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
         }
-        return fis;
+        return res;
     }
 
     private boolean putToMemory(String path, String key, Object value)
@@ -306,8 +310,7 @@ public class CacheComponentImpl implements ICacheComponent {
     @Override
     public void put(final String path,
             final String key,
-            final Object value,
-            final ITypeConvert typeConvert) {
+            final Object value) {
         // TODO Auto-generated method stub
         mPutExecutor.submit(new Runnable() {
 
@@ -319,12 +322,10 @@ public class CacheComponentImpl implements ICacheComponent {
                 {
                     flag = true;
                 }
-                if (typeConvert != null)
+                
+                if (putToDisk(path, key, value))
                 {
-                    if (putToDisk(path, key, typeConvert.convertObjectToInputStream(value)))
-                    {
-                        flag = true;
-                    }
+                    flag = true;
                 }
 
                 if (flag)
@@ -340,7 +341,7 @@ public class CacheComponentImpl implements ICacheComponent {
     }
 
     @Override
-    public void get(final String path, final String key, final ITypeConvert typeConvert) {
+    public void get(final String path, final String key) {
         // TODO Auto-generated method stub
         mGetExecutor.submit(new Runnable() {
 
@@ -356,14 +357,10 @@ public class CacheComponentImpl implements ICacheComponent {
 
                 if (!flag)
                 {
-                    InputStream is = getFromDisk(path, key);
-                    if (is != null)
+                    res = getFromDisk(path, key);
+                    if (res != null)
                     {
-                        res = typeConvert.convertInputStreamToObject(is);
-                        if (res != null)
-                        {
-                            flag = true;
-                        }
+                        flag = true;
                     }
                 }
 
@@ -382,26 +379,23 @@ public class CacheComponentImpl implements ICacheComponent {
     @Override
     public boolean putSync(String path,
             String key,
-            Object value,
-            ITypeConvert typeConvert) {
+            Object value) {
         // TODO Auto-generated method stub
         boolean flag = false;
         if (putToMemory(path, key, value))
         {
             flag = true;
         }
-        if (typeConvert != null)
+
+        if (putToDisk(path, key, value))
         {
-            if (putToDisk(path, key, typeConvert.convertObjectToInputStream(value)))
-            {
-                flag = true;
-            }
+            flag = true;
         }
         return flag;
     }
 
     @Override
-    public Object getSync(String path, String key, ITypeConvert typeConvert) {
+    public Object getSync(String path, String key) {
         // TODO Auto-generated method stub
         boolean flag = false;
         Object res = getFromMemory(path, key);
@@ -412,29 +406,12 @@ public class CacheComponentImpl implements ICacheComponent {
 
         if (!flag)
         {
-            InputStream is = getFromDisk(path, key);
-            if (is != null)
+            res = getFromDisk(path, key);
+            if (res != null)
             {
-                res = typeConvert.convertInputStreamToObject(is);
-                if (res != null)
-                {
-                    flag = true;
-                }
+                flag = true;
             }
         }
         return res;
     }
-
-    @Override
-    public ITypeConvert getStringTypeConvertInterface() {
-        // TODO Auto-generated method stub
-        return new StringTypeConvert();
-    }
-
-    @Override
-    public ITypeConvert getBitmapTypeConvertInterface() {
-        // TODO Auto-generated method stub
-        return new BitmapTypeConvert();
-    }
-
 }

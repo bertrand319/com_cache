@@ -8,33 +8,30 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
-
-import android.graphics.Bitmap;
-
 import com.baidu.common.cache.memory.LimitedMemoryCache;
 
 /**
- * Limited {@link Bitmap bitmap} cache. Provides {@link Bitmap bitmaps} storing.
- * Size of all stored bitmaps will not to exceed size limit. When cache reaches
- * limit size then the least recently used bitmap is deleted from cache.
+ * Limited {@link Object Object} cache. Provides {@link Object Objects} storing.
+ * Size of all stored Objects will not to exceed size limit. When cache reaches
+ * limit size then the least recently used Object is deleted from cache.
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  */
-public class LRULimitedMemoryCache extends LimitedMemoryCache<String, Bitmap> {
+public class LRULimitedMemoryCache extends LimitedMemoryCache<String, Object> {
 
     private static final int INITIAL_CAPACITY = 10;
     private static final float LOAD_FACTOR = 1.1f;
 
     /** Cache providing Least-Recently-Used logic */
-    private final Map<String, Bitmap> lruCache = Collections
-            .synchronizedMap(new LinkedHashMap<String, Bitmap>(INITIAL_CAPACITY, LOAD_FACTOR, true));
+    private final Map<String, Object> lruCache = Collections
+            .synchronizedMap(new LinkedHashMap<String, Object>(INITIAL_CAPACITY, LOAD_FACTOR, true));
 
     public LRULimitedMemoryCache(int sizeLimit) {
         super(sizeLimit);
     }
 
     @Override
-    public boolean put(String key, Bitmap value) {
+    public boolean put(String key, Object value) {
         if (super.put(key, value)) {
             lruCache.put(key, value);
             return true;
@@ -44,7 +41,7 @@ public class LRULimitedMemoryCache extends LimitedMemoryCache<String, Bitmap> {
     }
 
     @Override
-    public Bitmap get(String key) {
+    public Object get(String key) {
         lruCache.get(key); // call "get" for LRU logic
         return super.get(key);
     }
@@ -62,17 +59,17 @@ public class LRULimitedMemoryCache extends LimitedMemoryCache<String, Bitmap> {
     }
 
     @Override
-    protected int getSize(Bitmap value) {
-        return value.getRowBytes() * value.getHeight();
+    protected int getSize(Object value) {
+        return getObjectSize(value);
     }
 
     @Override
-    protected Bitmap removeNext() {
-        Bitmap mostLongUsedValue = null;
+    protected Object removeNext() {
+        Object mostLongUsedValue = null;
         synchronized (lruCache) {
-            Iterator<Entry<String, Bitmap>> it = lruCache.entrySet().iterator();
+            Iterator<Entry<String, Object>> it = lruCache.entrySet().iterator();
             if (it.hasNext()) {
-                Entry<String, Bitmap> entry = it.next();
+                Entry<String, Object> entry = it.next();
                 mostLongUsedValue = entry.getValue();
                 it.remove();
             }
@@ -81,7 +78,7 @@ public class LRULimitedMemoryCache extends LimitedMemoryCache<String, Bitmap> {
     }
 
     @Override
-    protected Reference<Bitmap> createReference(Bitmap value) {
-        return new WeakReference<Bitmap>(value);
+    protected Reference<Object> createReference(Object value) {
+        return new WeakReference<Object>(value);
     }
 }

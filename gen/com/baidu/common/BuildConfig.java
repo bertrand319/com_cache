@@ -1,4 +1,5 @@
 /** Automatically generated file. DO NOT MODIFY */
+
 package com.baidu.common;
 
 public final class BuildConfig {

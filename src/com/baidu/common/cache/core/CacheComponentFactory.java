@@ -13,15 +13,12 @@ import com.baidu.common.ComInterface;
  */
 public class CacheComponentFactory extends ComFactory {
 
-    public static ComInterface createInterface(Context context)
-    {
-        if (context != null)
-        {
+    public static ComInterface createInterface(Context context) {
+        if (context != null) {
             CacheComponentImpl instance = new CacheComponentImpl(context);
             return instance.getInstance();
         }
-        else
-        {
+        else {
             return null;
         }
     }

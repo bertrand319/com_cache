@@ -58,12 +58,10 @@ public class LimitedAgeDiscCache extends BaseDiscCache {
         File[] cachedFiles = getCacheDir().listFiles();
         for (File cachedFile : cachedFiles) {
             long lastModifedDate = cachedFile.lastModified();
-            if (System.currentTimeMillis() - lastModifedDate > maxFileAge)
-            {
+            if (System.currentTimeMillis() - lastModifedDate > maxFileAge) {
                 cachedFile.delete();
             }
-            else
-            {
+            else {
                 loadingDates.put(cachedFile, cachedFile.lastModified());
             }
         }

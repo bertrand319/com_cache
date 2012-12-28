@@ -59,11 +59,6 @@ public class FIFOLimitedMemoryCache extends LimitedMemoryCache<String, Object> {
 
     @Override
     protected int getSize(Object value) {
-        if (value instanceof Bitmap)
-        {
-            Bitmap bm = (Bitmap) value;
-            return bm.getRowBytes() * bm.getHeight();
-        }
         return getObjectSize(value);
     }
 

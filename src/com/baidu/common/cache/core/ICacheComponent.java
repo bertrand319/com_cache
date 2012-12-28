@@ -1,6 +1,8 @@
 
 package com.baidu.common.cache.core;
 
+import android.graphics.Bitmap;
+
 import com.baidu.common.ComInterface;
 import com.baidu.common.cache.core.CacheComponentImpl.DiskPolicy;
 import com.baidu.common.cache.core.CacheComponentImpl.MemoryPolicy;
@@ -29,9 +31,13 @@ public interface ICacheComponent extends ComInterface {
 
     public void get(String path, String key);
 
+    public void get(String path, String key, boolean isBitmap);
+
     public boolean putSync(String path, String key, Object value);
 
     public Object getSync(String path, String key);
+
+    public Object getSync(String path, String key, boolean isBitmap);
 
     public void setCallBackListner(ICacheCallBack cacheCallBack);
 

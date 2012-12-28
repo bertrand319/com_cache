@@ -8,14 +8,15 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import android.graphics.Bitmap;
+
 /**
  * Limited cache. Provides object storing. Size of all stored bitmaps will not
  * to exceed size limit ( {@link #getSizeLimit()}).
  * 
  * @author Sergey Tarasevich (nostra13[at]gmail[dot]com)
  * @see BaseMemoryCache
- * @modify huangweigan
- *      1. Add get Object Size function
+ * @modify huangweigan 1. Add get Object Size function
  */
 public abstract class LimitedMemoryCache<K, V> extends BaseMemoryCache<K, V> {
 
@@ -82,14 +83,19 @@ public abstract class LimitedMemoryCache<K, V> extends BaseMemoryCache<K, V> {
     protected int getSizeLimit() {
         return sizeLimit;
     }
-    
+
     /**
      * @param obj
      * @return
      */
-    public int getObjectSize(Object obj)
-    {
+    public int getObjectSize(Object obj) {
         int size = 0;
+        if (obj instanceof String) {
+            return ((String) obj).length();
+        }
+        if (obj instanceof Bitmap) {
+            return ((Bitmap) obj).getRowBytes() * ((Bitmap) obj).getHeight();
+        }
         ObjectOutputStream oos = null;
         ByteArrayOutputStream bos = null;
         try {
@@ -102,13 +108,15 @@ public abstract class LimitedMemoryCache<K, V> extends BaseMemoryCache<K, V> {
             // TODO Auto-generated catch block
             e.printStackTrace();
             try {
-                if(oos != null) oos.close();
+                if (oos != null)
+                    oos.close();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
             try {
-                if(bos != null) bos.close();
+                if (bos != null)
+                    bos.close();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();

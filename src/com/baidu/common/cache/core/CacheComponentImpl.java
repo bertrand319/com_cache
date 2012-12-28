@@ -2,6 +2,8 @@
 package com.baidu.common.cache.core;
 
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 
 import com.baidu.common.ComInterface;
 import com.baidu.common.cache.disc.BaseDiscCache;
@@ -29,7 +31,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadFactory;
 
 /**
- * 缂撳瓨缁勪欢瀹炵幇绫� * 
+ * 缂撳瓨缁勪欢瀹炵幇绫� *
+ * 
  * @date 2012-12-18
  * @version 1.0
  * @author huangweigan
@@ -65,7 +68,7 @@ public class CacheComponentImpl implements ICacheComponent {
     }
 
     public enum MemoryPolicy {
-        FIFO, WEAK_REFERENCE;
+        FIFO, LRU, WEAK_REFERENCE;
     }
 
     CacheComponentImpl(Context context) {
@@ -154,17 +157,14 @@ public class CacheComponentImpl implements ICacheComponent {
         if (policy == null)
             policy = MemoryPolicy.FIFO;
         BaseMemoryCache<String, Object> baseMemoryCache = null;
-        if (policy == MemoryPolicy.FIFO)
-        {
+        if (policy == MemoryPolicy.FIFO) {
             baseMemoryCache = new FIFOLimitedMemoryCache(
                     value == null ? FIFOLimitedMemoryCache.DEFAULT_SIZE_LIMIT : (Integer) value);
         }
-        else if (policy == MemoryPolicy.WEAK_REFERENCE)
-        {
+        else if (policy == MemoryPolicy.WEAK_REFERENCE) {
             baseMemoryCache = new WeakMemoryCache();
         }
-        if (baseMemoryCache != null)
-        {
+        if (baseMemoryCache != null) {
             mMemoryCaches.put(mark, baseMemoryCache);
         }
         return true;
@@ -175,8 +175,7 @@ public class CacheComponentImpl implements ICacheComponent {
             Object diskValue, MemoryPolicy memoryPolicy, Object memoryValue) {
         // TODO Auto-generated method stub
         if (!addDiskCachePath(path, diskPolicy, diskValue)
-                || !addMemoryCache(path, memoryPolicy, memoryValue))
-        {
+                || !addMemoryCache(path, memoryPolicy, memoryValue)) {
             return false;
         }
         return true;
@@ -184,10 +183,8 @@ public class CacheComponentImpl implements ICacheComponent {
 
     private boolean createCacheDir(File path)
     {
-        if (!path.exists())
-        {
-            if (!path.mkdirs())
-            {
+        if (!path.exists()) {
+            if (!path.mkdirs()) {
                 return false;
             }
         }
@@ -211,15 +208,13 @@ public class CacheComponentImpl implements ICacheComponent {
             public void run() {
                 // TODO Auto-generated method stub
                 Iterator<String> t = mDiskCaches.keySet().iterator();
-                while (t.hasNext())
-                {
+                while (t.hasNext()) {
                     String path = t.next();
                     BaseDiscCache baseDiscCache = mDiskCaches.get(path);
                     baseDiscCache.clear();
                 }
                 t = mMemoryCaches.keySet().iterator();
-                while (t.hasNext())
-                {
+                while (t.hasNext()) {
                     String path = t.next();
                     BaseMemoryCache<String, Object> baseMemoryCache = mMemoryCaches.get(path);
                     baseMemoryCache.clear();
@@ -241,24 +236,27 @@ public class CacheComponentImpl implements ICacheComponent {
         }
     }
 
-    private boolean putToDisk(final String path, final String key, final Object obj) {
+    private boolean putToDisk(final String path, final String key, Object obj) {
         // TODO Auto-generated method stub
         boolean flag = false;
         ObjectOutputStream oos = null;
         try {
             BaseDiscCache baseDiscCache = mDiskCaches.get(path);
-            File targetFile = baseDiscCache.get(key);
-            oos = new ObjectOutputStream(new FileOutputStream(targetFile));
-            oos.writeObject(obj);
-            oos.flush();
-            baseDiscCache.put(key, targetFile);
-            flag = true;
+            if (baseDiscCache != null) {
+                File targetFile = baseDiscCache.get(key);
+                oos = new ObjectOutputStream(new FileOutputStream(targetFile));
+                oos.writeObject(obj);
+                oos.flush();
+                baseDiscCache.put(key, targetFile);
+                flag = true;
+            }
         } catch (Exception e) {
             e.printStackTrace();
             flag = false;
         } finally {
             try {
-                if (oos != null) oos.close();
+                if (oos != null)
+                    oos.close();
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -273,20 +271,68 @@ public class CacheComponentImpl implements ICacheComponent {
         Object res = null;
         try {
             BaseDiscCache baseDiscCache = mDiskCaches.get(path);
-            File targetFile = baseDiscCache.get(key);
-            ois = new ObjectInputStream(new FileInputStream(targetFile));
-            res = ois.readObject();
+            if (baseDiscCache != null) {
+                File targetFile = baseDiscCache.get(key);
+                ois = new ObjectInputStream(new FileInputStream(targetFile));
+                res = ois.readObject();
+            }
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
             try {
-                if (ois != null) ois.close();
+                if (ois != null)
+                    ois.close();
             } catch (IOException e1) {
                 // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
         }
+
         return res;
+    }
+
+    private boolean putBitmapToDisk(final String path, final String key, Bitmap bm)
+    {
+        boolean flag = false;
+        FileOutputStream fos = null;
+        try {
+            BaseDiscCache baseDiscCache = mDiskCaches.get(path);
+            if (baseDiscCache != null) {
+                File targetFile = baseDiscCache.get(key);
+                fos = new FileOutputStream(targetFile);
+                bm.compress(Bitmap.CompressFormat.PNG, 100, fos);
+                flag = true;
+            }
+        } catch (Exception e) {
+            // TODO: handle exception
+            e.printStackTrace();
+            flag = false;
+        } finally {
+            if (fos != null) {
+                try {
+                    fos.close();
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+            }
+        }
+        return flag;
+    }
+
+    private Bitmap getBitmapFromDisk(final String path, final String key)
+    {
+        Bitmap bm = null;
+        try {
+            BaseDiscCache baseDiscCache = mDiskCaches.get(path);
+            if (baseDiscCache != null) {
+                File targetFile = baseDiscCache.get(key);
+                bm = BitmapFactory.decodeFile(targetFile.getAbsolutePath());
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return bm;
     }
 
     private boolean putToMemory(String path, String key, Object value)
@@ -319,22 +365,21 @@ public class CacheComponentImpl implements ICacheComponent {
                 // TODO Auto-generated method stub
                 boolean flag = false;
                 if (putToMemory(path, key, value))
-                {
                     flag = true;
+                if (value instanceof Bitmap) {
+                    if (putBitmapToDisk(path, key, (Bitmap) value))
+                        flag = true;
                 }
-                
-                if (putToDisk(path, key, value))
-                {
-                    flag = true;
+                else {
+                    if (putToDisk(path, key, value))
+                        flag = true;
                 }
 
-                if (flag)
-                {
+                if (flag) {
                     makeCallBack(MSG_PUT_SUCCESS, null);
                 }
-                else
-                {
-                    makeCallBack(MSG_GET_FAIL, null);
+                else {
+                    makeCallBack(MSG_PUT_FAIL, null);
                 }
             }
         });
@@ -343,37 +388,7 @@ public class CacheComponentImpl implements ICacheComponent {
     @Override
     public void get(final String path, final String key) {
         // TODO Auto-generated method stub
-        mGetExecutor.submit(new Runnable() {
-
-            @Override
-            public void run() {
-                // TODO Auto-generated method stub
-                boolean flag = false;
-                Object res = getFromMemory(path, key);
-                if (res != null)
-                {
-                    flag = true;
-                }
-
-                if (!flag)
-                {
-                    res = getFromDisk(path, key);
-                    if (res != null)
-                    {
-                        flag = true;
-                    }
-                }
-
-                if (flag)
-                {
-                    makeCallBack(MSG_GET_SUCCESS, res);
-                }
-                else
-                {
-                    makeCallBack(MSG_GET_FAIL, null);
-                }
-            }
-        });
+        get(path, key, false);
     }
 
     @Override
@@ -382,14 +397,17 @@ public class CacheComponentImpl implements ICacheComponent {
             Object value) {
         // TODO Auto-generated method stub
         boolean flag = false;
-        if (putToMemory(path, key, value))
-        {
+        if (putToMemory(path, key, value)) {
             flag = true;
         }
 
-        if (putToDisk(path, key, value))
-        {
-            flag = true;
+        if (value instanceof Bitmap) {
+            if (putBitmapToDisk(path, key, (Bitmap) value))
+                flag = true;
+        }
+        else {
+            if (putToDisk(path, key, value))
+                flag = true;
         }
         return flag;
     }
@@ -397,20 +415,62 @@ public class CacheComponentImpl implements ICacheComponent {
     @Override
     public Object getSync(String path, String key) {
         // TODO Auto-generated method stub
+        return getSync(path, key, false);
+    }
+
+    @Override
+    public void get(final String path, final String key, final boolean isBitmap) {
+        // TODO Auto-generated method stub
+        mGetExecutor.submit(new Runnable() {
+
+            @Override
+            public void run() {
+                // TODO Auto-generated method stub
+                boolean flag = false;
+                Object res = getFromMemory(path, key);
+                if (res != null) {
+                    flag = true;
+                }
+
+                if (!flag) {
+                    if (isBitmap) {
+                        res = getBitmapFromDisk(path, key);
+                    }
+                    else {
+                        res = getFromDisk(path, key);
+                    }
+                    if (res != null)
+                        flag = true;
+                }
+
+                if (flag) {
+                    makeCallBack(MSG_GET_SUCCESS, res);
+                }
+                else {
+                    makeCallBack(MSG_GET_FAIL, null);
+                }
+            }
+        });
+    }
+
+    @Override
+    public Object getSync(String path, String key, boolean isBitmap) {
+        // TODO Auto-generated method stub
         boolean flag = false;
         Object res = getFromMemory(path, key);
-        if (res != null)
-        {
+        if (res != null) {
             flag = true;
         }
 
-        if (!flag)
-        {
-            res = getFromDisk(path, key);
-            if (res != null)
-            {
-                flag = true;
+        if (!flag) {
+            if (isBitmap) {
+                res = getBitmapFromDisk(path, key);
             }
+            else {
+                res = getFromDisk(path, key);
+            }
+            if (res != null)
+                flag = true;
         }
         return res;
     }

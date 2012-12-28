@@ -1,27 +1,22 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android1="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".CacheManage" >
+    android:orientation="vertical" >
 
     <TextView
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
-        android:layout_centerVertical="true"
         android:text="@string/hello_world" />
 
     <EditText
         android:id="@+id/editText1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/textView1"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="33dp"
         android:ems="10"
         android:inputType="textMultiLine" >
-
         <requestFocus />
     </EditText>
 
@@ -29,35 +24,36 @@
         android:id="@+id/button3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/button1"
-        android:layout_below="@+id/button1"
-        android:layout_marginTop="20dp"
-        android:text="insert2" />
+        android:text="insertMemory" />
 
     <Button
         android:id="@+id/button1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/editText1"
-        android:layout_alignParentTop="true"
-        android:layout_marginLeft="33dp"
-        android:layout_marginTop="54dp"
-        android:text="Insert" />
+        android:text="InsertDisk" />
+    
+    <Button
+        android:id="@+id/button5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="InsertBitmap" />
 
     <Button
         android:id="@+id/button2"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_above="@+id/button3"
-        android:layout_toRightOf="@+id/button3"
         android:text="clear" />
 
     <Button
         android:id="@+id/button4"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/button3"
-        android:layout_alignRight="@+id/button2"
         android:text="display" />
 
-</RelativeLayout>
+    <ImageView
+        android1:id="@+id/imageView1"
+        android1:layout_width="wrap_content"
+        android1:layout_height="wrap_content"
+        android1:src="@drawable/ic_launcher" />
+
+</LinearLayout>

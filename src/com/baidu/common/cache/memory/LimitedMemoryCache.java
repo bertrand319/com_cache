@@ -56,9 +56,9 @@ public abstract class LimitedMemoryCache<K, V> extends BaseMemoryCache<K, V> {
             cacheSize += valueSize;
 
             putSuccessfully = true;
+         // Add value to soft cache
+            super.put(key, value);
         }
-        // Add value to soft cache
-        super.put(key, value);
         return putSuccessfully;
     }
 

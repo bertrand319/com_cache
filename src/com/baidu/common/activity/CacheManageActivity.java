@@ -87,7 +87,7 @@ public class CacheManageActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_cache_manage);
         setupViews();
-        mCachePath1 = "/sdcard/data/Android/" + getPackageName() + "/cache";
+        mCachePath1 = "/sdcard/Android/data/" + getPackageName() + "/cache";
         mCachePath2 = "/data/data/" + getPackageName() + "/cache1";
         mICacheComponent = (ICacheComponent) CacheComponentFactory.createInterface(this);
         mICacheComponent.setCallBackListner(mICacheCallBack);
@@ -100,7 +100,7 @@ public class CacheManageActivity extends Activity {
                 Context.ACTIVITY_SERVICE)).getMemoryClass();
 
         // Use 1/8th of the available memory for this memory cache.
-        final int cacheSize = 1024 * 1024 * memClass / 8;
+        final int cacheSize = 1024 * 1024 * memClass / (8);
         if (!mICacheComponent.addMemoryCache(mCachePath2, MemoryPolicy.FIFO, cacheSize))
         {
             LogUtil.e("Cache path don't exist!");
@@ -175,7 +175,7 @@ public class CacheManageActivity extends Activity {
                 // TODO Auto-generated method stub
                 Bitmap bm = getBitmapFromFile(new File("/sdcard/girl.JPG"), 1024, 1024);
                 String key = "test" + (mNum++);
-                mICacheComponent.put(mCachePath1, key, bm);
+                mICacheComponent.put(mCachePath2, key, bm);
                 mLastPath = mCachePath2;
                 mLastKey = key;
                 mIsImage = true;

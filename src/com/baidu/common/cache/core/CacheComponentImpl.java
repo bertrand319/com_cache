@@ -14,6 +14,7 @@ import com.baidu.common.cache.memory.BaseMemoryCache;
 import com.baidu.common.cache.memory.impl.FIFOLimitedMemoryCache;
 import com.baidu.common.cache.memory.impl.WeakMemoryCache;
 import com.baidu.common.cache.utils.FileUtils;
+import com.baidu.common.cache.utils.TimeUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -338,10 +339,8 @@ public class CacheComponentImpl implements ICacheComponent {
     private boolean putToMemory(String path, String key, Object value)
     {
         BaseMemoryCache<String, Object> baseMemoryCache = mMemoryCaches.get(path);
-        if (baseMemoryCache == null)
-            return false;
-        baseMemoryCache.put(key, value);
-        return true;
+        if (baseMemoryCache == null) return false;
+        return baseMemoryCache.put(key, value);
     }
 
     private Object getFromMemory(String path, String key)
@@ -363,17 +362,18 @@ public class CacheComponentImpl implements ICacheComponent {
             @Override
             public void run() {
                 // TODO Auto-generated method stub
+                TimeUtils.begin();
                 boolean flag = false;
                 if (putToMemory(path, key, value))
                     flag = true;
                 if (value instanceof Bitmap) {
-                    if (putBitmapToDisk(path, key, (Bitmap) value))
-                        flag = true;
+                    if (putBitmapToDisk(path, key, (Bitmap) value)) flag = true;
                 }
                 else {
-                    if (putToDisk(path, key, value))
-                        flag = true;
+                    if (putToDisk(path, key, value))    flag = true;
                 }
+                
+                TimeUtils.end();
 
                 if (flag) {
                     makeCallBack(MSG_PUT_SUCCESS, null);
@@ -426,6 +426,8 @@ public class CacheComponentImpl implements ICacheComponent {
             @Override
             public void run() {
                 // TODO Auto-generated method stub
+                
+                TimeUtils.begin();
                 boolean flag = false;
                 Object res = getFromMemory(path, key);
                 if (res != null) {
@@ -442,6 +444,8 @@ public class CacheComponentImpl implements ICacheComponent {
                     if (res != null)
                         flag = true;
                 }
+                
+                TimeUtils.end();
 
                 if (flag) {
                     makeCallBack(MSG_GET_SUCCESS, res);

@@ -22,5 +22,4 @@ public class CacheComponentFactory extends ComFactory {
             return null;
         }
     }
-
 }

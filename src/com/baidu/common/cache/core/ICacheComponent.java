@@ -28,12 +28,16 @@ public interface ICacheComponent extends ComInterface {
     public boolean clearCache();
 
     public void put(String path, String key, Object value);
+    
+    public void put(String path, String key, Object value, boolean isBitmap);
 
     public void get(String path, String key);
 
     public void get(String path, String key, boolean isBitmap);
 
     public boolean putSync(String path, String key, Object value);
+    
+    public boolean putSync(String path, String key, Object value, boolean isBitmap);
 
     public Object getSync(String path, String key);
 

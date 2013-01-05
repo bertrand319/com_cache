@@ -357,6 +357,13 @@ public class CacheComponentImpl implements ICacheComponent {
             final String key,
             final Object value) {
         // TODO Auto-generated method stub
+        put(path, key, value, false);
+    }
+    
+    
+    @Override
+    public void put(final String path, final String key, final Object value, final boolean isBitmap) {
+        // TODO Auto-generated method stub
         mPutExecutor.submit(new Runnable() {
 
             @Override
@@ -366,15 +373,13 @@ public class CacheComponentImpl implements ICacheComponent {
                 boolean flag = false;
                 if (putToMemory(path, key, value))
                     flag = true;
-                if (value instanceof Bitmap) {
+                if (isBitmap) {
                     if (putBitmapToDisk(path, key, (Bitmap) value)) flag = true;
                 }
                 else {
                     if (putToDisk(path, key, value))    flag = true;
                 }
-                
                 TimeUtils.end();
-
                 if (flag) {
                     makeCallBack(MSG_PUT_SUCCESS, null);
                 }
@@ -396,12 +401,18 @@ public class CacheComponentImpl implements ICacheComponent {
             String key,
             Object value) {
         // TODO Auto-generated method stub
+        return putSync(path, key, value, false);
+    }
+
+    @Override
+    public boolean putSync(String path, String key, Object value, boolean isBitmap) {
+        // TODO Auto-generated method stub
         boolean flag = false;
         if (putToMemory(path, key, value)) {
             flag = true;
         }
 
-        if (value instanceof Bitmap) {
+        if (isBitmap) {
             if (putBitmapToDisk(path, key, (Bitmap) value))
                 flag = true;
         }
@@ -478,4 +489,6 @@ public class CacheComponentImpl implements ICacheComponent {
         }
         return res;
     }
+
+    
 }
